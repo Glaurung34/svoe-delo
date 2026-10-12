@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>«Своё дело» — прототип продуктовых гипотез</title>
+<style>
+  :root{
+    --bg-app:#F1F0F6;
+    --primary:#5B52E8;
+    --primary-grad: linear-gradient(135deg,#6E64FF,#4F45D8);
+    --text:#16161D;
+    --text-secondary:#8A8A99;
+    --border:#E7E6EF;
+    --success:#1FAA59;
+    --success-bg:#E7F8EE;
+    --warning:#B96B00;
+    --warning-bg:#FFF3E0;
+    --danger:#D93025;
+    --danger-bg:#FDECEA;
+    --chip-bg:#EEEDFB;
+    --tip-bg:#FFF8E1;
+    --tip-text:#8A6D00;
+    --tip-border:#F3E3A8;
+    --hyp:#0E7C86;
+    --hyp-bg:#E3F5F6;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 20% 0%, #f2f1f9, #dfdeec 70%);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:26px 16px 60px;
+  }
+  .page-header{max-width:680px;text-align:center;margin-bottom:18px;}
+  .page-header .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);}
+  .page-header h1{font-size:21px;margin:6px 0 6px;}
+  .page-header p{font-size:12.5px;color:#5b5b66;line-height:1.5;margin:0;}
+  .legend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px;}
+
+  .toolbar{
+    width:100%;max-width:430px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:#fff;border-radius:16px;padding:10px 14px;
+    box-shadow:0 6px 18px rgba(30,30,60,.08);
+    margin-bottom:16px;
+    gap:10px;
+  }
+  .toolbar .crumb{font-size:11.5px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .toolbar .crumb span{display:block;font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;}
+  .toolbar .actions{display:flex;gap:6px;flex:0 0 auto;}
+  .tb-btn{
+    border:none;background:var(--chip-bg);color:var(--primary);font-size:11.5px;font-weight:700;
+    padding:8px 10px;border-radius:10px;cursor:pointer;white-space:nowrap;
+  }
+  .tb-btn:hover{background:#E1DEFB;}
+  .tb-btn:active{transform:scale(.96);}
+  .tb-btn.ghost2{background:#F1F0F6;color:var(--text);}
+  .tb-btn.hyp{background:var(--hyp-bg);color:var(--hyp);}
+
+  .device{
+    width:390px;
+    max-width:94vw;
+    background:var(--bg-app);
+    border-radius:44px;
+    overflow:hidden;
+    box-shadow:0 0 0 9px #101018, 0 26px 60px rgba(20,20,35,.35);
+    height:820px;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#101018;border-radius:0 0 18px 18px;z-index:20;}
+
+  .status-bar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px 6px;font-size:14px;font-weight:700;color:var(--text);}
+  .status-icons{display:flex;align-items:center;gap:5px;}
+  .bars{display:flex;align-items:flex-end;gap:2px;height:10px;}
+  .bars i{display:block;width:3px;background:#161621;border-radius:1px;}
+  .bars i:nth-child(1){height:4px;} .bars i:nth-child(2){height:6px;} .bars i:nth-child(3){height:8px;} .bars i:nth-child(4){height:10px;}
+  .wifi{width:0;height:0;border-left:6.5px solid transparent;border-right:6.5px solid transparent;border-bottom:8px solid #161621;border-radius:2px;}
+  .battery{width:21px;height:11px;border:1.5px solid #161621;border-radius:3px;position:relative;padding:1.3px;}
+  .battery:after{content:'';position:absolute;right:-3.8px;top:2.8px;width:2px;height:4.4px;background:#161621;border-radius:1px;}
+  .battery-fill{background:#161621;height:100%;width:82%;border-radius:1px;}
+
+  .app-header{padding:4px 16px 8px;display:flex;align-items:center;gap:10px;}
+  .app-header .back{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06);flex:0 0 auto;cursor:pointer;user-select:none;}
+  .app-header .back.disabled{opacity:.25;pointer-events:none;}
+  .app-header .back:active{transform:scale(.92);}
+  .app-header .title{font-size:16.5px;font-weight:700;flex:1;text-align:center;margin-right:32px;}
+
+  .app-body{flex:1;overflow-y:auto;padding:2px 16px 16px;display:flex;flex-direction:column;gap:11px;
+    animation:fadeIn .22s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .app-body::-webkit-scrollbar{width:0;}
+  .app-footer{padding:10px 16px 22px;}
+
+  .btn-primary{width:100%;padding:15px;border-radius:16px;background:var(--primary-grad);color:#fff;font-weight:700;font-size:14.5px;text-align:center;border:none;cursor:pointer;transition:transform .1s;}
+  .btn-primary:active{transform:scale(.98);}
+  .btn-primary.off{opacity:.38;pointer-events:none;}
+  .btn-secondary{width:100%;padding:14px;border-radius:16px;background:#fff;color:var(--primary);font-weight:700;font-size:14px;text-align:center;border:1.5px solid var(--primary);margin-top:9px;cursor:pointer;}
+  .btn-secondary:active{transform:scale(.98);}
+  .btn-ghost{width:100%;background:transparent;color:var(--text-secondary);text-align:center;font-size:12.5px;padding:8px;font-weight:600;cursor:pointer;}
+  .btn-pair{display:flex;gap:9px;}
+  .btn-pair .btn-secondary{margin-top:0;}
+
+  .card{background:#fff;border-radius:17px;padding:15px;}
+  .card-select{background:#fff;border-radius:17px;padding:15px;border:1.5px solid var(--border);display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:.12s;}
+  .card-select:active{transform:scale(.985);}
+  .card-select.selected{border-color:var(--primary);background:#F5F4FF;}
+  .card-select .radio{width:19px;height:19px;border-radius:50%;border:2px solid var(--border);flex:0 0 auto;margin-top:1px;}
+  .card-select.selected .radio{border-color:var(--primary);background:radial-gradient(circle,var(--primary) 0 6px, transparent 7px);}
+  .card-select .t{font-size:14px;font-weight:700;margin-bottom:2px;}
+  .card-select .d{font-size:12px;color:var(--text-secondary);line-height:1.4;}
+
+  .field{background:#fff;border-radius:14px;padding:11px 14px;}
+  .field label{display:block;font-size:11.5px;color:var(--text-secondary);margin-bottom:3px;}
+  .field .value{font-size:14.5px;font-weight:600;color:var(--text);}
+  .field .value.muted{color:#B7B7C2;font-weight:500;}
+  .field.locked{background:#F5F5F9;}
+  .field-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .pencil{font-size:12px;color:var(--text-secondary);}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;background:var(--chip-bg);color:var(--primary);padding:6px 11px;border-radius:20px;font-size:12px;font-weight:700;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+
+  .banner{display:flex;gap:8px;padding:12px 13px;border-radius:14px;font-size:12px;line-height:1.4;}
+  .banner .ic{flex:0 0 auto;}
+  .banner.info{background:#EEF1FF;color:#3B3F8F;}
+  .banner.success{background:var(--success-bg);color:#177A41;}
+  .banner.warning{background:var(--warning-bg);color:var(--warning);}
+  .banner.danger{background:var(--danger-bg);color:var(--danger);}
+
+  .tip-card{display:flex;gap:9px;padding:12px 13px;border-radius:14px;font-size:11.5px;line-height:1.45;background:var(--tip-bg);color:var(--tip-text);border:1px solid var(--tip-border);}
+  .tip-card .ic{flex:0 0 auto;font-size:14px;}
+  .tip-card b{color:#7A5E00;}
+
+  .doc-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:11px 13px;cursor:pointer;}
+  .doc-row:active{transform:scale(.985);}
+  .doc-row .icon{width:34px;height:34px;border-radius:10px;background:#EEF1FF;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:15px;flex:0 0 auto;}
+  .doc-row .name{font-size:13px;font-weight:600;flex:1;}
+  .doc-row .sz{font-size:11px;color:var(--text-secondary);}
+  .doc-row .chev{color:#C6C6D1;}
+
+  .section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+
+  .center-block{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:11px;padding:10px 6px;}
+  .status-icon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .status-icon.ok{background:var(--success-bg);color:var(--success);}
+  .status-icon.warn{background:var(--warning-bg);color:var(--warning);}
+  .status-icon.pending{background:var(--chip-bg);color:var(--primary);}
+  .center-title{font-size:17.5px;font-weight:700;}
+  .center-text{font-size:13px;color:var(--text-secondary);line-height:1.5;max-width:260px;}
+
+  .stepper{display:flex;flex-direction:column;gap:0;}
+  .stepper .st{display:flex;gap:10px;}
+  .stepper .line{display:flex;flex-direction:column;align-items:center;}
+  .stepper .dot{width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:0 0 auto;}
+  .stepper .dot.done{background:var(--success);color:#fff;}
+  .stepper .dot.now{background:var(--primary);color:#fff;}
+  .stepper .dot.todo{background:#E7E6EF;color:#9797A5;}
+  .stepper .bar{width:2px;flex:1;background:#E7E6EF;min-height:16px;}
+  .stepper .bar.done{background:var(--success);}
+  .stepper .txt{padding-bottom:15px;padding-top:1px;}
+  .stepper .txt .tt{font-size:13px;font-weight:700;}
+  .stepper .txt .ts{font-size:11.5px;color:var(--text-secondary);}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:14px;padding:13px 14px;cursor:pointer;gap:10px;}
+  .toggle-row:active{transform:scale(.985);}
+  .toggle-row .l{font-size:13px;font-weight:600;max-width:240px;line-height:1.35;}
+  .toggle-row .l small{display:block;font-weight:500;color:var(--text-secondary);font-size:11.5px;margin-top:2px;}
+  .toggle{width:40px;height:23px;border-radius:20px;background:var(--border);position:relative;flex:0 0 auto;transition:.15s;}
+  .toggle.on{background:var(--primary);}
+  .toggle .knob{width:19px;height:19px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:.15s;}
+  .toggle.on .knob{left:19px;}
+
+  .bottom-nav{display:flex;justify-content:space-around;padding:9px 0 22px;background:#fff;border-top:1px solid var(--border);}
+  .bottom-nav .item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--text-secondary);}
+  .bottom-nav .item.active{color:var(--primary);font-weight:700;}
+  .nav-ic{font-size:17px;}
+
+  .link-card{background:#fff;border-radius:17px;padding:15px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .link-card:active{transform:scale(.985);}
+  .link-card .lg{width:40px;height:40px;border-radius:12px;background:var(--primary-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex:0 0 auto;}
+  .link-card .t{font-size:13.5px;font-weight:700;}
+  .link-card .d{font-size:11.5px;color:var(--text-secondary);line-height:1.4;}
+
+  .hint{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--primary);font-weight:600;}
+  .hint.clickable{cursor:pointer;}
+  .demo-box{border:1.5px dashed #C9C6F0;border-radius:14px;padding:12px 13px;background:#FBFAFF;}
+  .demo-box .lab{font-size:10.5px;font-weight:700;color:#8A82D8;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
+
+  .num-list{display:flex;flex-direction:column;gap:8px;}
+  .num-list .ni{display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.5;color:#3f3f49;}
+  .num-list .nb{width:19px;height:19px;border-radius:50%;background:var(--chip-bg);color:var(--primary);font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px;}
+
+  .checklist-row{display:flex;gap:12px;align-items:flex-start;background:#fff;border-radius:15px;padding:13px 14px;}
+  .checklist-row.clickable{cursor:pointer;}
+  .checklist-row.clickable:active{transform:scale(.985);}
+  .checklist-row.disabled{opacity:.5;}
+  .cl-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:0 0 auto;margin-top:1px;}
+  .cl-icon.done{background:var(--success);color:#fff;}
+  .cl-icon.now{background:var(--primary);color:#fff;box-shadow:0 0 0 4px #EEEDFB;}
+  .cl-icon.todo{background:#E7E6EF;color:#9797A5;}
+  .cl-t{font-size:13.5px;font-weight:700;}
+  .cl-d{font-size:11.5px;color:var(--text-secondary);margin-top:2px;line-height:1.4;}
+  .cl-chip{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-top:6px;}
+  .cl-chip.now{background:var(--chip-bg);color:var(--primary);}
+
+  /* ===== Новое: «Своё дело» ===== */
+  .hyp-badge{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;background:var(--hyp-bg);color:var(--hyp);font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:9px;letter-spacing:.02em;}
+  .hyp-badge.lg{font-size:11.5px;padding:6px 11px;border-radius:11px;}
+  .auto{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:#F1F0F6;color:#55556a;margin-left:4px;vertical-align:middle;}
+
+  .hub-card{background:#fff;border-radius:18px;padding:15px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;border:1.5px solid transparent;}
+  .hub-card:active{transform:scale(.985);}
+  .hub-card.accent{border-color:var(--primary);background:#F7F6FF;}
+  .hub-card .ico{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto;background:#EEF1FF;}
+  .hub-card .t{font-size:14.5px;font-weight:700;margin-bottom:3px;}
+  .hub-card .d{font-size:12px;color:var(--text-secondary);line-height:1.45;}
+  .hub-card .q{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em;}
+
+  .seg{display:flex;flex-wrap:wrap;gap:6px;}
+  .seg .o{flex:1 1 auto;min-width:72px;text-align:center;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px 8px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .seg .o.sel{border-color:var(--primary);background:#F5F4FF;color:var(--primary);}
+  .seg.two .o{flex:1 1 40%;}
+
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .cat{background:#fff;border:1.5px solid var(--border);border-radius:15px;padding:12px;cursor:pointer;}
+  .cat.sel{border-color:var(--primary);background:#F5F4FF;}
+  .cat .e{font-size:20px;}
+  .cat .t{font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.3;}
+  .cat .d{font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.35;}
+
+  .cmp{background:#fff;border-radius:17px;padding:14px;border:1.5px solid var(--border);}
+  .cmp.rec{border-color:var(--success);box-shadow:0 0 0 3px var(--success-bg);}
+  .cmp .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+  .cmp .hd .t{font-size:14.5px;font-weight:700;}
+  .cmp .tag{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:8px;white-space:nowrap;}
+  .cmp .tag.ok{background:var(--success-bg);color:#177A41;}
+  .cmp .tag.mid{background:var(--warning-bg);color:var(--warning);}
+  .cmp .tag.no{background:#F1F0F6;color:#6b6b78;}
+  .cmp .row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 0;border-top:1px solid #F1F0F6;line-height:1.35;}
+  .cmp .row .k{color:var(--text-secondary);flex:0 0 42%;}
+  .cmp .row .v{font-weight:600;text-align:right;}
+  .money{font-size:20px;font-weight:800;}
+  .demo-val{font-size:10px;font-weight:700;color:#8A82D8;background:#F3F1FF;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle;}
+
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .tile{background:#fff;border-radius:17px;padding:13px;cursor:pointer;min-height:112px;display:flex;flex-direction:column;gap:4px;}
+  .tile:active{transform:scale(.98);}
+  .tile .ti{font-size:18px;}
+  .tile .tt{font-size:11.5px;color:var(--text-secondary);font-weight:600;}
+  .tile .tv{font-size:16px;font-weight:800;}
+  .tile .ts{font-size:11px;color:var(--text-secondary);line-height:1.35;margin-top:auto;}
+  .tile .ts.alert{color:var(--warning);font-weight:700;}
+  .tile.wide{grid-column:1 / -1;min-height:auto;flex-direction:row;align-items:center;gap:12px;}
+
+  .pay-row{display:flex;gap:10px;align-items:center;background:#fff;border-radius:14px;padding:11px 13px;cursor:pointer;}
+  .pay-row:active{transform:scale(.985);}
+  .pay-row .av{width:34px;height:34px;border-radius:50%;background:#EEF1FF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--primary);flex:0 0 auto;}
+  .pay-row .mid{flex:1;min-width:0;}
+  .pay-row .n{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pay-row .s{font-size:11px;color:var(--text-secondary);}
+  .pay-row .amt{font-size:13.5px;font-weight:800;color:var(--success);text-align:right;}
+  .lbl{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;margin-top:3px;}
+  .lbl.inc{background:var(--warning-bg);color:var(--warning);}
+  .lbl.done{background:var(--success-bg);color:#177A41;}
+  .lbl.pers{background:#F1F0F6;color:#6b6b78;}
+
+  .progress{height:9px;border-radius:9px;background:#EEEDF4;overflow:hidden;}
+  .progress i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#F2A93B,#E5732A);}
+  .progress.calm i{background:var(--primary-grad);}
+
+  .cal-row{display:flex;gap:12px;align-items:center;background:#fff;border-radius:14px;padding:11px 13px;cursor:pointer;}
+  .cal-row:active{transform:scale(.985);}
+  .cal-date{width:44px;flex:0 0 auto;text-align:center;border-radius:11px;padding:5px 0;background:#F5F4FF;}
+  .cal-date .d{font-size:16px;font-weight:800;color:var(--primary);line-height:1.1;}
+  .cal-date .m{font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;}
+  .cal-date.soon{background:var(--warning-bg);}
+  .cal-date.soon .d{color:var(--warning);}
+  .cal-date.done{background:var(--success-bg);}
+  .cal-date.done .d{color:var(--success);}
+  .cal-row .t{font-size:13px;font-weight:700;}
+  .cal-row .s{font-size:11.5px;color:var(--text-secondary);line-height:1.35;}
+
+  .qr{width:150px;height:150px;margin:4px auto 0;border-radius:14px;background:
+    repeating-linear-gradient(0deg,#16161D 0 6px,transparent 6px 12px),
+    repeating-linear-gradient(90deg,#16161D 0 6px,transparent 6px 12px);
+    background-blend-mode:multiply;opacity:.85;position:relative;border:10px solid #fff;box-shadow:0 0 0 1px var(--border);}
+  .qr:after{content:'ЕРИП';position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);background:#fff;font-size:11px;font-weight:800;padding:4px 6px;border-radius:6px;color:var(--primary);}
+
+  .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:7px 0;border-top:1px solid #F1F0F6;}
+  .kv:first-child{border-top:none;}
+  .kv .k{color:var(--text-secondary);}
+  .kv .v{font-weight:700;text-align:right;}
+
+  .foot-note{max-width:430px;text-align:center;font-size:11px;color:#8A8A99;margin-top:18px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="eyebrow">Своё дело легально · UP Online</div>
+  <h1>«Своё дело»: экраны продуктовых гипотез</h1>
+  <p>Дополнение к прототипу «Стань предпринимателем»: навигатор выбора формата, календарь обязанностей, «Мой доход» для самозанятых, копилка на налоги, счета с оплатой через ЕРИП и подсказка о смене формата. Регистрация ИП/ООО открывается в основном прототипе.</p>
+  <div class="legend">
+    <span class="hyp-badge">◆ Гипотеза · MVP</span>
+    <span class="hyp-badge">◆ Гипотеза · очередь 2</span>
+    <span class="hyp-badge">◆ Гипотеза · очередь 3</span>
+    <span class="chip" style="font-size:10.5px;padding:4px 9px;cursor:pointer;" onclick="app.openReg()">↗ Регистрация — основной прототип</span>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="crumb"><span id="crumbStage">—</span><span id="crumbTitle" style="font-size:12.5px;color:#16161D;font-weight:700;text-transform:none;letter-spacing:0;">—</span></div>
+  <div class="actions">
+    <button class="tb-btn hyp" onclick="app.go('h0')">🏠 Своё дело</button>
+    <button class="tb-btn ghost2" onclick="app.openReg()">↗ Регистрация</button>
+    <button class="tb-btn" onclick="app.restart()">↺</button>
+  </div>
+</div>
+
+<div class="device" id="device">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons"><div class="bars"><i></i><i></i><i></i><i></i></div><div class="wifi"></div><div class="battery"><div class="battery-fill"></div></div></div>
+  </div>
+  <div id="appHeader"></div>
+  <div id="appBody" class="app-body"></div>
+  <div id="appFooter" class="app-footer"></div>
+  <div id="bottomNav"></div>
+</div>
+
+<div class="foot-note">Для перехода к регистрации и к сценарию ИП → ЮЛ держите файлы up_alt_scenario_prototype.html и ip_v_yul_prototype.html в той же папке. Экраны «Своё дело» — гипотезы из документа «Своё дело легально: продуктовая стратегия для UP Online»; суммы, сроки и ставки на них условные и требуют сверки с актуальным законодательством.</div>
+
+<script>
+const state = {
+  entity: 'ip',       // 'ip' | 'ooo'
+  nameAttempts: 0,
+  sig: null,           // 'bank' | 'self'
+  docsChecked: false,
+  submitted: false,
+  companyName: 'ТехноСтарт',
+  // ===== «Своё дело» =====
+  activity: 'tutor',   // 'tutor' | 'it' | 'goods' | 'craft'
+  income: 'mid',       // 'low' | 'mid' | 'high' | 'vhigh'
+  clients: 'people',   // 'people' | 'org' | 'both'
+  staff: false,
+  persona: 'npd',      // 'npd' | 'ip'
+  npdRegistered: false,
+  consent: false,
+  reminders: true,
+  autoTag: true,
+  piggy: 10,
+  piggyAuto: true,
+  receiptDone: false,
+  payType: 'qr',
+  trigger: true,
+  invoicePaid: false,
+  payments: [
+    {id:'p1', who:'Анна К.', note:'за 4 занятия', sum:'120,00', when:'Сегодня, 10:14', type:'inc'},
+    {id:'p2', who:'Сергей Д.', note:'урок 10.10', sum:'35,00', when:'Вчера, 19:02', type:'inc'},
+    {id:'p3', who:'Ольга П. (мама)', note:'на продукты', sum:'50,00', when:'Вчера, 12:40', type:'pers'},
+    {id:'p4', who:'Ирина М.', note:'пробное занятие', sum:'25,00', when:'9 окт, 17:30', type:'done'},
+    {id:'p5', who:'Дмитрий Л.', note:'курс, оплата 2/3', sum:'90,00', when:'8 окт, 21:11', type:'done'}
+  ],
+  curPay: 'p1'
+};
+let current = 'h0';
+let hist = [];
+let progressRef = 's1';
+
+const MACRO = {
+  s1:1, s2:1, s3:1,
+  s4a:2, s5b:2, s5b_check:2, s5b_free:2, s5b_busy:2, s7b:2, s8b:2,
+  s9:3, s10a:3, s11:3,
+  s12:4, s13:4,
+  s14:5,
+  s15a:6, s15b:6, s15c:6,
+  s16:7
+};
+const MACRO_LABELS = [
+  {n:1, t:'Анкета', d:'Выбор формы бизнеса, данные профиля, коды ОКЭД'},
+  {n:2, t:'Название и документы', d:'ИП — автозаявление. ООО — название (проверка на сайте ЕГР вручную) и конструктор документов'},
+  {n:3, t:'Электронная подпись', d:'Заказ ЭЦП через банк или самостоятельно, получение ключа'},
+  {n:4, t:'Вычитка и подача', d:'Проверка документов, скачивание, самостоятельная подача в ЕГР'},
+  {n:5, t:'Ожидание регистрации', d:'ЕГР рассматривает документы'},
+  {n:6, t:'Результат регистрации', d:'Открытие счёта (ИП — автоматически, ООО — по обращению) или уточнение статуса'},
+  {n:7, t:'Переход в бизнес-интерфейс', d:'SSO-переход в бизнес-контур банка'},
+];
+
+function repScreen(macro){
+  switch(macro){
+    case 1: return 's1';
+    case 2: return state.entity==='ip' ? 's4a' : 's5b';
+    case 3: return 's9';
+    case 4: return 's12';
+    case 5: return 's14';
+    case 6: return state.entity==='ip' ? 's15a' : 's15b';
+    case 7: return 's16';
+  }
+}
+
+function go(id, opts){
+  opts = opts || {};
+  if(id===current) return;
+  if(!opts.replace){ hist.push(current); }
+  if(MACRO[id]){ progressRef = id; }
+  current = id;
+  render();
+  document.getElementById('appBody').scrollTop = 0;
+}
+function back(){
+  if(hist.length===0) return;
+  current = hist.pop();
+  render();
+}
+function restart(){
+  state.entity='ip'; state.nameAttempts=0; state.sig=null; state.docsChecked=false; state.submitted=false;
+  state.npdRegistered=false; state.consent=false; state.receiptDone=false; state.invoicePaid=false; state.trigger=true; state.persona='npd';
+  state.payments.forEach(p=>{ if(p.id==='p1'||p.id==='p2') p.type='inc'; if(p.id==='p3') p.type='pers'; });
+  state.payments = state.payments.filter(p=>p.id!=='p6');
+  hist=[]; current='h0'; progressRef='s1'; render();
+}
+function selectEntity(v){ state.entity=v; render(); }
+function selectSig(v){ state.sig=v; render(); }
+function toggle(key){ state[key]=!state[key]; render(); }
+function set(key, v){ state[key]=v; render(); }
+function generateName(){
+  const opts=['ТехноСтарт','Альфа Солюшнс','ГринВей Групп','НоваЛинк'];
+  let i = opts.indexOf(state.companyName);
+  state.companyName = opts[(i+1)%opts.length];
+  render();
+}
+function openEgrSite(){
+  alert('В реальном приложении откроется официальный сайт ЕГР (egr.gov.by) в новой вкладке или встроенном браузере — проверка выполняется на стороне ЕГР, банк не имеет к ней прямого API-доступа.');
+}
+function markNameFree(){ go('s5b_free'); }
+function markNameBusy(){ state.nameAttempts++; go('s5b_busy'); }
+function openChecklist(){ go('checklist'); }
+
+// ===== «Своё дело»: логика =====
+function recFormat(){
+  if(state.staff || state.clients==='org' || state.income==='vhigh' || state.activity==='goods') return 'ip';
+  return 'npd';
+}
+function startRegistration(){ state.entity='ip'; go('r0'); }
+function openReg(){ window.open('up_alt_scenario_prototype.html','_blank'); }
+function openPay(id){ state.curPay=id; state.receiptDone = getPay(id).type==='done'; go('i2'); }
+function getPay(id){ return state.payments.find(p=>p.id===id); }
+function cyclePay(id, ev){
+  ev.stopPropagation();
+  const p=getPay(id);
+  p.type = p.type==='pers' ? 'inc' : (p.type==='inc' ? 'pers' : p.type);
+  render();
+}
+function markReceipt(){
+  state.receiptDone=!state.receiptDone;
+  const p=getPay(state.curPay);
+  p.type = state.receiptDone ? 'done' : 'inc';
+  render();
+}
+function copyReceipt(){ alert('Данные чека скопированы: дата, сумма, плательщик и назначение — вставьте их в приложении «Профдоход». Прямой интеграции с МНС пока нет.'); }
+function openProfdohod(){ alert('В реальном приложении откроется мобильное приложение МНС «Профдоход» (переход вне банка). Банк не может выбить чек сам — API для этого нет.'); }
+function payInvoice(){
+  state.invoicePaid=true;
+  if(!getPay('p6')) state.payments.unshift({id:'p6', who:'ООО «Учебный центр»', note:'Счёт №7 · оплата по ЕРИП', sum:'300,00', when:'Сейчас', type:'inc'});
+  go('v3');
+}
+function shareInvoice(){ alert('Откроется системное меню «Поделиться»: мессенджер, e-mail или копирование ссылки на оплату.'); }
+function openIpUl(){ window.open('ip_v_yul_prototype.html','_blank'); }
+function enterDashboard(p){ state.persona=p; go('d0'); }
+
+const app = {go, back, restart, selectEntity, selectSig, toggle, set, generateName, checkName:null, openEgrSite, markNameFree, markNameBusy, openChecklist,
+  startRegistration, openReg, openPay, cyclePay, markReceipt, copyReceipt, openProfdohod, payInvoice, shareInvoice, openIpUl, enterDashboard};
+
+function tip(html){
+  return `<div class="tip-card"><span class="ic">💡</span><div>${html}</div></div>`;
+}
+function hyp(q){ return `<div class="hyp-badge">◆ Гипотеза · ${q}</div>`; }
+function demo(){ return `<span class="demo-val">условно</span>`; }
+
+const ACT = {
+  tutor:{e:'📚', t:'Услуги людям', d:'Репетитор, тренер, мастер, психолог'},
+  it:{e:'💻', t:'IT и удалёнка', d:'Разработка, дизайн, тексты на заказ'},
+  goods:{e:'📦', t:'Продажа товаров', d:'Маркетплейсы, свой магазин, перепродажа'},
+  craft:{e:'🧶', t:'Своё производство', d:'Хендмейд, выпечка, мастерская'}
+};
+const INCOME = {low:'до 1 000', mid:'1 000–3 000', high:'3 000–10 000', vhigh:'больше 10 000'};
+const CLIENTS = {people:'Только физлица', org:'Организации и ИП', both:'И те, и другие'};
+
+const SCREENS = {
+
+  // ================= «СВОЁ ДЕЛО»: ВХОД =================
+  h0: ()=>({
+    stage:'Своё дело · вход', title:'Своё дело', back:false,
+    body:`
+      ${hyp('MVP')}
+      <div class="banner info"><span class="ic">ⓘ</span>Работайте на себя легально: поможем выбрать формат, оформиться и не пропускать обязательства</div>
+      <div class="hub-card accent" onclick="app.go('n1')">
+        <div class="ico">🧭</div>
+        <div><div class="q">Решить</div><div class="t">Подобрать формат работы</div><div class="d">Самозанятость, ИП или договор подряда — сравним, что выгоднее именно вам. 2 минуты</div></div>
+      </div>
+      <div class="hub-card" onclick="app.startRegistration()">
+        <div class="ico">📝</div>
+        <div><div class="q">Начать</div><div class="t">Зарегистрировать ИП или ООО</div><div class="d">Анкета, документы, ЭЦП и подача в ЕГР с подсказками на каждом шаге</div></div>
+      </div>
+      <div class="hub-card" onclick="app.enterDashboard('npd')">
+        <div class="ico">💼</div>
+        <div><div class="q">Работать</div><div class="t">Я уже работаю на себя</div><div class="d">Календарь обязанностей, учёт дохода, копилка на налоги и счета клиентам</div></div>
+      </div>
+      ${tip('<b>Почему так:</b> по итогам интервью с МСБ клиент сначала спрашивает «выгодно ли мне и как сделать законно», а уже потом — «как зарегистрироваться». Регистрация — один из шагов, а не вход в продукт.')}
+    `,
+    footer:`<div class="btn-primary" onclick="app.go('n1')">Подобрать формат</div>`,
+    nav:true
+  }),
+
+  // ================= НАВИГАТОР ФОРМАТА =================
+  n1: ()=>({
+    stage:'Решить · навигатор 1/3', title:'Чем вы занимаетесь?',
+    body:`
+      ${hyp('MVP · навигатор формата')}
+      <div class="cat-grid">
+        ${Object.entries(ACT).map(([k,a])=>`
+          <div class="cat ${state.activity===k?'sel':''}" onclick="app.set('activity','${k}')">
+            <div class="e">${a.e}</div><div class="t">${a.t}</div><div class="d">${a.d}</div>
+          </div>`).join('')}
+      </div>
+      <div class="field"><label>Или найдите свой вид деятельности</label><div class="value muted">например, «репетитор по математике»</div></div>
+      <div class="hint">ⓘ Подберём код ОКЭД — тот же классификатор, что при регистрации</div>
+      ${tip('<b>Совет:</b> не для всех видов деятельности доступна самозанятость — навигатор сразу покажет ограничения для выбранного варианта.')}
+    `,
+    footer:`<div class="btn-primary" onclick="app.go('n2')">Далее</div>`
+  }),
+
+  n2: ()=>({
+    stage:'Решить · навигатор 2/3', title:'Доход и клиенты',
+    body:`
+      ${hyp('MVP · навигатор формата')}
+      <div class="section-title">Сколько планируете зарабатывать в месяц, BYN</div>
+      <div class="seg two">
+        ${Object.entries(INCOME).map(([k,v])=>`<div class="o ${state.income===k?'sel':''}" onclick="app.set('income','${k}')">${v}</div>`).join('')}
+      </div>
+      <div class="section-title">Кто вам платит</div>
+      <div class="seg">
+        ${Object.entries(CLIENTS).map(([k,v])=>`<div class="o ${state.clients===k?'sel':''}" onclick="app.set('clients','${k}')">${v}</div>`).join('')}
+      </div>
+      <div class="toggle-row" onclick="app.toggle('staff')"><div class="l">Планирую нанимать помощников<small>Сотрудники по трудовому или гражданско-правовому договору</small></div><div class="toggle ${state.staff?'on':''}"><div class="knob"></div></div></div>
+      <div class="banner info"><span class="ic">🔒</span>Ответы нужны только для расчёта и не передаются в банк для оценки кредитоспособности</div>
+      ${tip('<b>Совет:</b> указывайте реалистичный доход — от него зависят лимиты самозанятости и итоговая налоговая нагрузка.')}
+    `,
+    footer:`<div class="btn-primary" onclick="app.go('n3')">Показать сравнение</div>`
+  }),
+
+  n3: ()=>{
+    const rec = recFormat();
+    const npd = `
+      <div class="cmp ${rec==='npd'?'rec':''}">
+        <div class="hd"><div class="t">Самозанятость (НПД)</div><span class="tag ${rec==='npd'?'ok':(state.clients==='org'||state.staff?'no':'mid')}">${rec==='npd'?'Подходит лучше':(state.staff?'Не подходит':'Подходит частично')}</span></div>
+        <div class="row"><div class="k">Налог в месяц</div><div class="v">≈ ${state.income==='low'?'40':state.income==='mid'?'200':'650'} BYN ${demo()}</div></div>
+        <div class="row"><div class="k">Отчётность</div><div class="v">Чек на каждое поступление в «Профдоходе», без деклараций</div></div>
+        <div class="row"><div class="k">Ограничения</div><div class="v">Лимит дохода, без наёмных сотрудников, не все виды деятельности</div></div>
+        <div class="row"><div class="k">Как оформить</div><div class="v">В приложении МНС «Профдоход» <span class="auto">🔴 вне банка</span></div></div>
+      </div>`;
+    const ip = `
+      <div class="cmp ${rec==='ip'?'rec':''}">
+        <div class="hd"><div class="t">Индивидуальный предприниматель</div><span class="tag ${rec==='ip'?'ok':'mid'}">${rec==='ip'?'Подходит лучше':'Избыточно на старте'}</span></div>
+        <div class="row"><div class="k">Налоги и взносы в месяц</div><div class="v">≈ ${state.income==='low'?'190':state.income==='mid'?'360':'1 100'} BYN ${demo()}</div></div>
+        <div class="row"><div class="k">Отчётность</div><div class="v">Декларации, учёт доходов, взносы в ФСЗН</div></div>
+        <div class="row"><div class="k">Плюсы</div><div class="v">Можно работать с организациями, нанимать людей, расти</div></div>
+        <div class="row"><div class="k">Как оформить</div><div class="v">Прямо здесь <span class="auto">🟡 с подачей в ЕГР</span></div></div>
+      </div>`;
+    const gpd = `
+      <div class="cmp">
+        <div class="hd"><div class="t">Договор подряда с заказчиком</div><span class="tag ${state.clients==='people'?'no':'mid'}">${state.clients==='people'?'Не подходит':'Если заказчик один'}</span></div>
+        <div class="row"><div class="k">Налоги</div><div class="v">Удерживает и платит заказчик</div></div>
+        <div class="row"><div class="k">Ограничения</div><div class="v">Только с организацией или ИП, зависимость от одного заказчика</div></div>
+      </div>`;
+    return {
+      stage:'Решить · навигатор 3/3', title:'Что вам подходит',
+      body:`
+        ${hyp('MVP · навигатор формата')}
+        <div class="chip-row">
+          <div class="chip">${ACT[state.activity].e} ${ACT[state.activity].t}</div>
+          <div class="chip">${INCOME[state.income]} BYN/мес</div>
+          <div class="chip">${CLIENTS[state.clients]}</div>
+          ${state.staff?'<div class="chip">С помощниками</div>':''}
+        </div>
+        ${rec==='npd' ? npd+ip : ip+npd}
+        ${gpd}
+        <div class="banner warning"><span class="ic">⚠</span>Расчёт информационный, ставки и лимиты обновляются по действующему законодательству. Это не налоговая консультация</div>
+        <div class="link-card" onclick="alert('Откроется детальный расчёт: из чего складывается сумма и какие обязанности появятся')"><div class="lg">Σ</div><div><div class="t">Как мы считали</div><div class="d">Ставки, взносы и обязанности по каждому варианту</div></div></div>
+        ${tip('<b>Совет:</b> формат можно сменить позже — мы подскажем, когда доход или клиенты изменятся настолько, что выгоднее станет другой вариант.')}
+      `,
+      footer: rec==='ip'
+        ? `<div class="btn-primary" onclick="app.startRegistration()">Зарегистрировать ИП в приложении</div>
+           <div class="btn-ghost" onclick="app.go('n5')">Всё же хочу стать самозанятым</div>`
+        : `<div class="btn-primary" onclick="app.go('n5')">Стать самозанятым</div>
+           <div class="btn-ghost" onclick="app.startRegistration()">Всё же зарегистрировать ИП</div>`
+    };
+  },
+
+  n5: ()=>({
+    stage:'Начать · самозанятость', title:'Как стать самозанятым',
+    body:`
+      ${hyp('MVP')}
+      <div class="banner info"><span class="ic">ⓘ</span>Самозанятость оформляется в приложении МНС — банк регистрировать её не может, но поможет со всем, что дальше</div>
+      <div class="stepper">
+        <div class="st"><div class="line"><div class="dot ${state.npdRegistered?'done':'now'}">${state.npdRegistered?'✓':'1'}</div><div class="bar ${state.npdRegistered?'done':''}"></div></div><div class="txt"><div class="tt">Зарегистрируйтесь в «Профдоходе» <span class="auto">🔴 вне банка</span></div><div class="ts">Приложение МНС, вход по данным паспорта</div></div></div>
+        <div class="st"><div class="line"><div class="dot ${state.npdRegistered?'now':'todo'}">2</div><div class="bar"></div></div><div class="txt"><div class="tt">Включите «Мой доход» в UP</div><div class="ts">Будем отмечать поступления и напоминать выбить чек</div></div></div>
+        <div class="st"><div class="line"><div class="dot todo">3</div></div><div class="txt"><div class="tt">Настройте копилку на налоги</div><div class="ts">Часть каждого дохода — на отдельный счёт</div></div></div>
+      </div>
+      <div class="link-card" onclick="app.openProfdohod()"><div class="lg">↗</div><div><div class="t">Открыть «Профдоход»</div><div class="d">Приложение МНС для самозанятых</div></div></div>
+      <div class="toggle-row" onclick="app.toggle('npdRegistered')"><div class="l">Я зарегистрировался(-ась) как самозанятый</div><div class="toggle ${state.npdRegistered?'on':''}"><div class="knob"></div></div></div>
+      <div class="banner warning"><span class="ic">⚠</span>Это самоотчёт клиента — банк не может проверить статус в МНС автоматически</div>
+    `,
+    footer:`<div class="btn-primary ${!state.npdRegistered?'off':''}" onclick="app.go('x1')">Настроить «Мой доход»</div>`
+  }),
+
+  x1: ()=>({
+    stage:'Работать · согласие', title:'Учёт дохода',
+    body:`
+      ${hyp('очередь 2 · «Мой доход»')}
+      <div class="center-block" style="flex:0;padding-top:4px;">
+        <div class="status-icon pending">💸</div>
+        <div class="center-title">Разрешите отмечать доход</div>
+        <div class="center-text">Мы будем подсвечивать входящие переводы, похожие на оплату ваших услуг, и напоминать выбить чек</div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Что мы делаем</div>
+        <div class="num-list" style="margin-top:8px;">
+          <div class="ni"><div class="nb">✓</div>Анализируем только входящие переводы на ваши счета в UP</div>
+          <div class="ni"><div class="nb">✓</div>Вы сами решаете, что доход, а что личный перевод</div>
+          <div class="ni"><div class="nb">✓</div>Отключить можно в любой момент — история удалится</div>
+        </div>
+        <div class="section-title" style="margin-top:12px;">Чего не делаем</div>
+        <div class="num-list" style="margin-top:8px;">
+          <div class="ni"><div class="nb">✕</div>Не передаём данные в налоговые органы</div>
+          <div class="ni"><div class="nb">✕</div>Не используем разметку для кредитных решений</div>
+        </div>
+      </div>
+      <div class="toggle-row" onclick="app.toggle('consent')"><div class="l">Согласен(-на) на обработку данных о входящих платежах</div><div class="toggle ${state.consent?'on':''}"><div class="knob"></div></div></div>
+      ${tip('<b>Для команды:</b> формулировки согласия и сценарий отзыва — на согласование с комплаенсом до пилота.')}
+    `,
+    footer:`<div class="btn-primary ${!state.consent?'off':''}" onclick="app.enterDashboard('npd')">Готово</div>`
+  }),
+
+  // ================= ДАШБОРД «СВОЁ ДЕЛО» =================
+  d0: ()=>{
+    const isNpd = state.persona==='npd';
+    const unchecked = state.payments.filter(p=>p.type==='inc').length;
+    return {
+      stage:'Работать · дашборд', title:'Своё дело', nav:true,
+      body:`
+        ${hyp(isNpd?'MVP + очередь 2':'MVP')}
+        <div class="chip-row"><div class="chip">${isNpd?'Самозанятый · НПД':'ИП · Иванова М.С.'}</div><div class="chip">Октябрь 2026</div></div>
+        ${state.trigger && isNpd ? `
+        <div class="banner warning" style="cursor:pointer;" onclick="app.go('t1')"><span class="ic">📈</span><div><b>Доход растёт — проверьте формат.</b> Вы близко к годовому лимиту самозанятости и появились оплаты от организаций. Подробнее ›</div></div>` : ''}
+        <div class="tiles">
+          <div class="tile" onclick="app.go('c1')">
+            <div class="ti">🗓</div><div class="tt">Ближайший срок</div><div class="tv">${isNpd?'20 окт':'22 окт'}</div>
+            <div class="ts alert">${isNpd?'Уплата налога':'Уплата налога и декларация'}</div>
+          </div>
+          ${isNpd ? `
+          <div class="tile" onclick="app.go('i1')">
+            <div class="ti">💸</div><div class="tt">Доход за октябрь</div><div class="tv">${state.invoicePaid?'1 370':'1 070'} BYN</div>
+            <div class="ts ${unchecked?'alert':''}">${unchecked?`Чеков не выбито: ${unchecked}`:'Все чеки выбиты'}</div>
+          </div>` : `
+          <div class="tile" onclick="app.go('i1')">
+            <div class="ti">💸</div><div class="tt">Поступления за октябрь</div><div class="tv">${state.invoicePaid?'4 520':'4 220'} BYN</div>
+            <div class="ts">Учёт доходов — по счёту ИП</div>
+          </div>`}
+          <div class="tile" onclick="app.go('k1')">
+            <div class="ti">🐷</div><div class="tt">Копилка на налоги</div><div class="tv">${isNpd?'214':'640'} BYN</div>
+            <div class="ts">${state.piggy}% с каждого дохода</div>
+          </div>
+          <div class="tile" onclick="app.go('v1')">
+            <div class="ti">🧾</div><div class="tt">Счета клиентам</div><div class="tv">${state.invoicePaid?'0':'1'} ждёт</div>
+            <div class="ts">Выставить счёт с оплатой по ЕРИП</div>
+          </div>
+          ${isNpd ? `
+          <div class="tile wide" onclick="app.go('t1')">
+            <div class="ti">🧭</div><div style="flex:1"><div class="tt">Мой формат</div><div style="font-size:13px;font-weight:700;">Самозанятость · 82% годового лимита ${demo()}</div><div class="progress" style="margin-top:6px;"><i style="width:82%"></i></div></div>
+          </div>` : `
+          <div class="tile wide" onclick="app.openIpUl()">
+            <div class="ti">🏢</div><div style="flex:1"><div class="tt">Растёте?</div><div style="font-size:13px;font-weight:700;">Переход из ИП в ООО — когда понадобится</div></div><div class="chev" style="color:#C6C6D1;">›</div>
+          </div>`}
+        </div>
+        <div class="demo-box">
+          <div class="lab">Демо · кто клиент</div>
+          <div class="seg">
+            <div class="o ${isNpd?'sel':''}" onclick="app.set('persona','npd')">Самозанятый</div>
+            <div class="o ${!isNpd?'sel':''}" onclick="app.set('persona','ip')">ИП после регистрации</div>
+          </div>
+        </div>
+      `,
+      footer:''
+    };
+  },
+
+  // ================= КАЛЕНДАРЬ ОБЯЗАННОСТЕЙ =================
+  c1: ()=>{
+    const isNpd = state.persona==='npd';
+    const rows = isNpd ? [
+      {d:'↻', m:'всегда', cls:'', t:'Чек на каждое поступление', s:'В «Профдоходе» — «Мой доход» напомнит', go:"app.go('i1')"},
+      {d:'20', m:'окт', cls:'soon', t:'Уплата налога за сентябрь', s:'Через 8 дней · можно оплатить из копилки', go:"app.go('c2')"},
+      {d:'20', m:'ноя', cls:'', t:'Уплата налога за октябрь', s:'Сумма появится после 1 ноября', go:"app.go('c2')"},
+      {d:'✓', m:'сен', cls:'done', t:'Уплата налога за август', s:'Оплачено 18 сентября', go:''}
+    ] : [
+      {d:'22', m:'окт', cls:'soon', t:'Налоговая декларация за квартал', s:'Через 10 дней · подготовим черновик', go:"app.go('c2')"},
+      {d:'22', m:'окт', cls:'soon', t:'Уплата налога за квартал', s:'Можно оплатить из копилки', go:"app.go('c2')"},
+      {d:'↻', m:'мес.', cls:'', t:'Обязательные взносы в ФСЗН', s:'Сроки и сумма — по уведомлению', go:"app.go('c2')"},
+      {d:'✓', m:'июл', cls:'done', t:'Декларация за II квартал', s:'Отмечено как подано', go:''}
+    ];
+    return {
+      stage:'Работать · календарь', title:'Календарь обязанностей',
+      body:`
+        ${hyp('MVP · календарь обязанностей')}
+        <div class="banner info"><span class="ic">ⓘ</span>Собрали обязанности для формата «${isNpd?'самозанятость':'ИП'}» — ничего не нужно искать самостоятельно</div>
+        ${rows.map(r=>`
+          <div class="cal-row" ${r.go?`onclick="${r.go}"`:''}>
+            <div class="cal-date ${r.cls}"><div class="d">${r.d}</div><div class="m">${r.m}</div></div>
+            <div style="flex:1"><div class="t">${r.t}</div><div class="s">${r.s}</div></div>
+            ${r.go?'<div class="chev" style="color:#C6C6D1;">›</div>':''}
+          </div>`).join('')}
+        <div class="toggle-row" onclick="app.toggle('reminders')"><div class="l">Напоминать за 3 дня и в день срока<small>Push и в ленте событий UP</small></div><div class="toggle ${state.reminders?'on':''}"><div class="knob"></div></div></div>
+        <div class="banner warning"><span class="ic">⚠</span>Сроки в прототипе — пример. В продукте рассчитываются по действующему законодательству</div>
+        ${tip(isNpd?'<b>Первые 90 дней:</b> главное — не забывать выбивать чеки сразу после оплаты. Остальное мы напомним.':'<b>Первые 90 дней:</b> сохраните свидетельство о регистрации и проверьте, что ИП поставлено на учёт в налоговой и ФСЗН — уведомления придут сюда.')}
+      `,
+      footer:`<div class="btn-secondary" style="margin-top:0;" onclick="app.back()">Готово</div>`
+    };
+  },
+
+  c2: ()=>({
+    stage:'Работать · календарь', title:'Уплата налога',
+    body:`
+      ${hyp('MVP · календарь обязанностей')}
+      <div class="card">
+        <div class="kv"><div class="k">Что</div><div class="v">${state.persona==='npd'?'Налог на профессиональный доход за сентябрь':'Налог за квартал'}</div></div>
+        <div class="kv"><div class="k">Срок</div><div class="v">${state.persona==='npd'?'до 20 октября':'до 22 октября'}</div></div>
+        <div class="kv"><div class="k">Сумма</div><div class="v">${state.persona==='npd'?'107,00':'612,40'} BYN ${demo()}</div></div>
+        <div class="kv"><div class="k">Откуда сумма</div><div class="v">${state.persona==='npd'?'Из «Профдохода» — по выбитым чекам':'Из декларации'}</div></div>
+      </div>
+      <div class="banner success"><span class="ic">🐷</span>В копилке на налоги достаточно средств</div>
+      <div class="link-card" onclick="alert('Откроется памятка: зачем этот платёж, что будет при просрочке, куда обращаться с вопросами')"><div class="lg">?</div><div><div class="t">Что будет, если пропустить</div><div class="d">Коротко и без канцелярита</div></div></div>
+      ${tip('<b>Совет:</b> сумму к уплате сверяйте с уведомлением в «Профдоходе» или личном кабинете МНС — в приложении банка она подтягивается для удобства.')}
+    `,
+    footer:`<div class="btn-primary" onclick="alert('Откроется платёж через ЕРИП с предзаполненными реквизитами, списание — из копилки'); app.back();">Оплатить из копилки</div>
+            <div class="btn-ghost" onclick="app.back()">Отметить: уже оплачено</div>`
+  }),
+
+  // ================= МОЙ ДОХОД (НПД) =================
+  i1: ()=>{
+    const inc = state.payments.filter(p=>p.type==='inc').length;
+    return {
+      stage:'Работать · «Мой доход»', title:'Мой доход',
+      body:`
+        ${hyp('очередь 2 · «Мой доход»')}
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+            <div><div class="tt" style="font-size:11.5px;color:var(--text-secondary);font-weight:600;">Доход за октябрь</div><div class="money">${state.invoicePaid?'1 370':'1 070'},00 BYN</div></div>
+            <div style="text-align:right;"><div style="font-size:11.5px;color:var(--text-secondary);">Чеков не выбито</div><div style="font-size:18px;font-weight:800;color:${inc?'var(--warning)':'var(--success)'};">${inc}</div></div>
+          </div>
+          <div class="progress calm" style="margin-top:10px;"><i style="width:${Math.round((5-inc)/5*100)}%"></i></div>
+        </div>
+        <div class="section-title">Поступления <span style="text-transform:none;font-weight:600;">· нажмите метку, чтобы сменить</span></div>
+        ${state.payments.map(p=>`
+          <div class="pay-row" onclick="${p.type==='pers'?'':`app.openPay('${p.id}')`}">
+            <div class="av">${p.who[0]}</div>
+            <div class="mid"><div class="n">${p.who}</div><div class="s">${p.note} · ${p.when}</div>
+              <span class="lbl ${p.type}" onclick="app.cyclePay('${p.id}', event)">${p.type==='inc'?'Доход · чек не выбит':p.type==='done'?'Доход · чек выбит':'Личный перевод'}</span></div>
+            <div class="amt" style="${p.type==='pers'?'color:#8A8A99;':''}">+${p.sum}</div>
+          </div>`).join('')}
+        <div class="link-card" onclick="app.go('i3')"><div class="lg">⚙</div><div><div class="t">Правила разметки</div><div class="d">Как мы отличаем оплату услуг от личных переводов</div></div></div>
+        ${tip('<b>Совет:</b> выбивайте чек сразу после оплаты — так не придётся вспоминать в конце месяца, кто и за что платил.')}
+      `,
+      footer:''
+    };
+  },
+
+  i2: ()=>{
+    const p = getPay(state.curPay);
+    return {
+      stage:'Работать · «Мой доход»', title:'Чек для «Профдохода»',
+      body:`
+        ${hyp('очередь 2 · «Мой доход»')}
+        <div class="card">
+          <div class="kv"><div class="k">Дата и время</div><div class="v">${p.when}</div></div>
+          <div class="kv"><div class="k">Сумма</div><div class="v">${p.sum} BYN</div></div>
+          <div class="kv"><div class="k">Плательщик</div><div class="v">${p.who}</div></div>
+          <div class="kv"><div class="k">Назначение</div><div class="v">${p.note}</div></div>
+          <div class="kv"><div class="k">Тип плательщика</div><div class="v">${p.who.startsWith('ООО')?'Организация':'Физическое лицо'}</div></div>
+        </div>
+        <div class="btn-secondary" style="margin-top:0;" onclick="app.copyReceipt()">📋 Скопировать данные чека</div>
+        <div class="link-card" onclick="app.openProfdohod()"><div class="lg">↗</div><div><div class="t">Открыть «Профдоход» <span class="auto">🔴 вне банка</span></div><div class="d">Вставьте данные и сформируйте чек</div></div></div>
+        <div class="toggle-row" onclick="app.markReceipt()"><div class="l">Чек выбит</div><div class="toggle ${state.receiptDone?'on':''}"><div class="knob"></div></div></div>
+        <div class="banner warning"><span class="ic">⚠</span>API «Профдохода» для банков нет — отметка «чек выбит» остаётся самоотчётом. Если МНС откроет интеграцию, чеки будут формироваться автоматически</div>
+      `,
+      footer:`<div class="btn-primary" onclick="app.back()">Готово</div>`
+    };
+  },
+
+  i3: ()=>({
+    stage:'Работать · «Мой доход»', title:'Правила разметки',
+    body:`
+      ${hyp('очередь 2 · «Мой доход»')}
+      <div class="toggle-row" onclick="app.toggle('autoTag')"><div class="l">Предлагать метку автоматически<small>По отправителю, назначению и истории ваших решений</small></div><div class="toggle ${state.autoTag?'on':''}"><div class="knob"></div></div></div>
+      <div class="section-title">Ваши правила</div>
+      <div class="doc-row"><div class="icon">🧾</div><div style="flex:1"><div class="name">Оплата по счёту из UP</div><div class="sz">всегда доход</div></div><div class="chev">›</div></div>
+      <div class="doc-row"><div class="icon">🔤</div><div style="flex:1"><div class="name">Назначение содержит «урок», «занятие», «курс»</div><div class="sz">доход</div></div><div class="chev">›</div></div>
+      <div class="doc-row"><div class="icon">👪</div><div style="flex:1"><div class="name">Ольга П. (мама)</div><div class="sz">всегда личный перевод</div></div><div class="chev">›</div></div>
+      <div class="btn-secondary" style="margin-top:0;" onclick="alert('Конструктор правила: отправитель / ключевые слова / сумма → метка')">+ Добавить правило</div>
+      ${tip('<b>Совет:</b> попросите клиентов указывать в назначении слово «оплата» и услугу — разметка станет точнее.')}
+    `,
+    footer:`<div class="btn-primary" onclick="app.back()">Сохранить</div>`
+  }),
+
+  // ================= КОПИЛКА =================
+  k1: ()=>({
+    stage:'Работать · копилка', title:'Копилка на налоги',
+    body:`
+      ${hyp('очередь 2 · «Мой доход»')}
+      <div class="card" style="text-align:center;">
+        <div style="font-size:11.5px;color:var(--text-secondary);font-weight:600;">Накоплено</div>
+        <div class="money">${state.persona==='npd'?'214':'640'},00 BYN</div>
+        <div style="font-size:11.5px;color:var(--success);font-weight:700;margin-top:2px;">Хватает на ближайший платёж</div>
+      </div>
+      <div class="section-title">Откладывать с каждого дохода</div>
+      <div class="seg">
+        ${[5,10,15,20].map(v=>`<div class="o ${state.piggy===v?'sel':''}" onclick="app.set('piggy',${v})">${v}%</div>`).join('')}
+      </div>
+      <div class="hint">ⓘ Рекомендуем ${state.persona==='npd'?'10':'15'}% — по вашей ставке налога и взносам ${demo()}</div>
+      <div class="toggle-row" onclick="app.toggle('piggyAuto')"><div class="l">Переводить автоматически<small>Сразу после поступления, отмеченного как доход</small></div><div class="toggle ${state.piggyAuto?'on':''}"><div class="knob"></div></div></div>
+      <div class="toggle-row" onclick="alert('Платёж по сроку из календаря обязанностей будет списываться из копилки — после подтверждения')"><div class="l">Оплачивать налоги из копилки<small>С подтверждением в день платежа</small></div><div class="toggle on"><div class="knob"></div></div></div>
+      ${tip('<b>Совет:</b> деньги в копилке остаются вашими — их можно вывести в любой момент. Копилка просто отделяет «налоговые» деньги от личных.')}
+    `,
+    footer:`<div class="btn-primary" onclick="app.back()">Сохранить</div>`
+  }),
+
+  // ================= СЧЕТА =================
+  v1: ()=>({
+    stage:'Работать · счета', title:'Новый счёт',
+    body:`
+      ${hyp('очередь 2 · счета и акты')}
+      <div class="field"><label>Клиент</label><div class="value">ООО «Учебный центр»</div></div>
+      <div class="field"><label>Услуга</label><div class="value">Занятия по математике, октябрь</div></div>
+      <div class="field"><label>Сумма, BYN</label><div class="value">300,00</div></div>
+      <div class="section-title">Как клиент оплатит</div>
+      <div class="seg">
+        <div class="o ${state.payType==='qr'?'sel':''}" onclick="app.set('payType','qr')">QR / ЕРИП</div>
+        <div class="o ${state.payType==='link'?'sel':''}" onclick="app.set('payType','link')">Ссылка на оплату картой</div>
+      </div>
+      <div class="toggle-row"><div class="l">Приложить акт выполненных работ<small>По шаблону, с вашими реквизитами</small></div><div class="toggle on"><div class="knob"></div></div></div>
+      ${state.persona==='npd'?`<div class="banner info"><span class="ic">ⓘ</span>Оплата по счёту сразу попадёт в «Мой доход» с меткой «доход»</div>`:''}
+      ${tip('<b>Совет:</b> сохраните клиента и услугу как шаблон — следующий счёт займёт три нажатия.')}
+    `,
+    footer:`<div class="btn-primary" onclick="app.go('v2')">Сформировать счёт</div>`
+  }),
+
+  v2: ()=>({
+    stage:'Работать · счета', title:'Счёт №7',
+    body:`
+      ${hyp('очередь 2 · счета и акты')}
+      <div class="card" style="text-align:center;">
+        <div style="font-size:12px;color:var(--text-secondary);">ООО «Учебный центр» · 300,00 BYN</div>
+        <div class="qr"></div>
+        <div style="font-size:11.5px;color:var(--text-secondary);margin-top:8px;">Отсканируйте в банковском приложении или оплатите по номеру в ЕРИП</div>
+      </div>
+      <div class="btn-pair">
+        <div class="btn-secondary" onclick="app.shareInvoice()">📤 Отправить</div>
+        <div class="btn-secondary" onclick="alert('PDF: счёт и акт выполненных работ')">📄 PDF</div>
+      </div>
+      <div class="stepper">
+        <div class="st"><div class="line"><div class="dot done">✓</div><div class="bar done"></div></div><div class="txt"><div class="tt">Счёт сформирован</div><div class="ts">Сегодня, 9:41</div></div></div>
+        <div class="st"><div class="line"><div class="dot now">⏳</div></div><div class="txt"><div class="tt">Ожидаем оплату</div><div class="ts">Пришлём уведомление, когда клиент оплатит</div></div></div>
+      </div>
+      <div class="demo-box">
+        <div class="lab">Демо · действие клиента</div>
+        <div class="btn-secondary" style="margin-top:0;" onclick="app.payInvoice()">✅ Клиент оплатил</div>
+      </div>
+    `,
+    footer:`<div class="btn-ghost" onclick="app.go('d0')">Вернуться в «Своё дело»</div>`
+  }),
+
+  v3: ()=>({
+    stage:'Работать · счета', title:'Счёт оплачен',
+    body:`
+      <div class="center-block">
+        <div class="status-icon ok">✓</div>
+        <div class="center-title">300,00 BYN получено</div>
+        <div class="center-text">ООО «Учебный центр» оплатило счёт №7 через ЕРИП</div>
+      </div>
+      ${state.persona==='npd' ? `
+      <div class="banner success"><span class="ic">💸</span>Добавлено в «Мой доход» с меткой «доход»</div>
+      <div class="banner warning"><span class="ic">🧾</span>Не забудьте выбить чек — плательщик организация, проверьте ставку для таких доходов</div>
+      <div class="banner info"><span class="ic">🐷</span>${state.piggy}% (${(300*state.piggy/100).toFixed(2).replace('.',',')} BYN) отложено в копилку на налоги</div>` : `
+      <div class="banner info"><span class="ic">🐷</span>${state.piggy}% отложено в копилку на налоги</div>`}
+    `,
+    footer: state.persona==='npd'
+      ? `<div class="btn-primary" onclick="app.openPay('p6')">Выбить чек</div><div class="btn-ghost" onclick="app.go('d0')">В «Своё дело»</div>`
+      : `<div class="btn-primary" onclick="app.go('d0')">В «Своё дело»</div>`
+  }),
+
+  // ================= ТРИГГЕР СМЕНЫ ФОРМАТА =================
+  t1: ()=>({
+    stage:'Расти · подсказка', title:'Пора проверить формат',
+    body:`
+      ${hyp('очередь 3 · подсказки о смене формата')}
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-secondary);">Доход с начала года</span><b>82% лимита ${demo()}</b></div>
+        <div class="progress" style="margin:8px 0 4px;"><i style="width:82%"></i></div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">При текущем темпе лимит будет достигнут примерно в декабре</div>
+      </div>
+      <div class="section-title">Что изменилось</div>
+      <div class="num-list">
+        <div class="ni"><div class="nb">1</div>Доход за 3 месяца вырос почти вдвое</div>
+        <div class="ni"><div class="nb">2</div>Появились оплаты от организаций — 2 за месяц</div>
+        <div class="ni"><div class="nb">3</div>Средний чек стал выше — похоже на регулярные контракты</div>
+      </div>
+      <div class="banner info"><span class="ic">ⓘ</span>Это подсказка, а не требование. Решение о формате остаётся за вами</div>
+      ${tip('<b>Совет:</b> переход в ИП лучше спланировать заранее — регистрация и получение ЭЦП занимают время.')}
+      <div class="toggle-row" onclick="app.toggle('trigger')"><div class="l">Показывать такие подсказки</div><div class="toggle ${state.trigger?'on':''}"><div class="knob"></div></div></div>
+    `,
+    footer:`<div class="btn-primary" onclick="state.income='vhigh'; state.clients='both'; app.go('n3')">Пересчитать в навигаторе</div>
+            <div class="btn-ghost" onclick="app.back()">Напомнить через месяц</div>`
+  }),
+
+  // ================= МОСТ В ПРОТОТИП РЕГИСТРАЦИИ =================
+  r0: ()=>({
+    stage:'Начать · регистрация', title:'Регистрация ИП / ООО',
+    body:`
+      <div class="chip-row"><span class="chip">Спроектированный сценарий</span></div>
+      <div class="center-block" style="flex:0;padding-top:4px;">
+        <div class="status-icon pending">📝</div>
+        <div class="center-title">Дальше — сценарий регистрации</div>
+        <div class="center-text">Анкета, документы, ЭЦП, самостоятельная подача в ЕГР и открытие счёта — в основном прототипе «Стань предпринимателем»</div>
+      </div>
+      <div class="link-card" onclick="app.openReg()"><div class="lg">↗</div><div><div class="t">Открыть прототип регистрации</div><div class="d">up_alt_scenario_prototype.html · откроется в новой вкладке</div></div></div>
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Предлагаемые точки связи с регистрацией</div>
+        <div class="num-list" style="margin-top:8px;">
+          <div class="ni"><div class="nb">1</div>Экран выбора формы: ссылка «Не знаете, что выбрать?» → навигатор формата</div>
+          <div class="ni"><div class="nb">2</div>Экран «ИП зарегистрировано»: «Настроить „Своё дело“» → дашборд ИП</div>
+        </div>
+      </div>
+      <div class="demo-box">
+        <div class="lab">Демо · клиент вернулся после регистрации</div>
+        <div class="btn-secondary" style="margin-top:0;" onclick="app.enterDashboard('ip')">🎉 ИП зарегистрировано → «Своё дело»</div>
+      </div>
+    `,
+    footer:`<div class="btn-primary" onclick="app.openReg()">Открыть прототип регистрации</div>`
+  }),
+};
+
+function render(){
+  const s = SCREENS[current]();
+  document.getElementById('crumbStage').textContent = s.stage;
+  document.getElementById('crumbTitle').textContent = s.title || 'Бизнес-интерфейс';
+
+  const headerEl = document.getElementById('appHeader');
+  if(s.title !== undefined && !s.noHeaderTitle){
+    headerEl.innerHTML = `
+      <div class="app-header">
+        <div class="back ${hist.length===0?'disabled':''}" onclick="app.back()">←</div>
+        <div class="title">${s.title}</div>
+      </div>`;
+  } else if(s.noHeaderTitle){
+    headerEl.innerHTML = `<div class="app-header"><div class="back" onclick="app.back()">←</div><div class="title"></div></div>`;
+  } else {
+    headerEl.innerHTML = '';
+  }
+
+  document.getElementById('appBody').innerHTML = s.body;
+  document.getElementById('appFooter').innerHTML = s.footer || '';
+
+  const navEl = document.getElementById('bottomNav');
+  if(s.nav){
+    const own = current==='h0' || current==='d0';
+    navEl.innerHTML = `
+      <div class="bottom-nav">
+        <div class="item ${own?'':'active'}"><span class="nav-ic">🏠</span>Главная</div>
+        <div class="item"><span class="nav-ic">💳</span>Платежи</div>
+        <div class="item ${own?'active':''}" style="cursor:pointer;" onclick="app.go(state.persona && (current==='d0') ? 'd0' : 'h0')"><span class="nav-ic">💼</span>Своё дело</div>
+        <div class="item"><span class="nav-ic">💬</span>Чат</div>
+        <div class="item"><span class="nav-ic">•••</span>Ещё</div>
+      </div>`;
+  } else {
+    navEl.innerHTML = '';
+  }
+}
+
+// Масштабирование «телефона» под высоту экрана ноутбука при показе
+function fitDeviceScale(){
+  const d = document.getElementById('device');
+  d.style.zoom = 1;
+  const top = d.getBoundingClientRect().top + window.scrollY;
+  const avail = window.innerHeight - Math.min(top, 190) - 24;
+  const z = Math.max(0.62, Math.min(1, avail / 838));
+  d.style.zoom = z;
+}
+window.addEventListener('resize', fitDeviceScale);
+
+if(location.hash==='#ip'){ state.persona='ip'; current='d0'; }
+else if(location.hash==='#nav'){ current='n1'; }
+render();
+fitDeviceScale();
+</script>
+</body>
+</html>
